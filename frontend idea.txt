@@ -1,0 +1,540 @@
+FRONTEND IMPLEMENTATION GUIDE - INSURANCE CLAIM MANAGEMENT SYSTEM
+
+Tech Stack:
+- Framework: Angular (latest version, e.g., Angular 18+)
+- TypeScript: Latest stable version
+- Styling: Bootstrap 5 or Angular Material
+- State Management: NgRx or RxJS Subjects
+- HTTP Client: Angular HttpClientModule
+- Authentication: JWT Token-based with HttpInterceptor
+- Routing: Angular Router with Route Guards (AuthGuard, RoleGuard)
+- Build Tool: Angular CLI
+- Package Manager: npm or yarn
+
+PROJECT STRUCTURE:
+src/
+├── app/
+│   ├── core/
+│   │   ├── services/
+│   │   │   ├── auth.service.ts
+│   │   │   ├── user.service.ts
+│   │   │   ├── api.service.ts
+│   │   │   ├── claim.service.ts
+│   │   │   ├── policy.service.ts
+│   │   │   ├── hospital.service.ts
+│   │   │   ├── doctor.service.ts
+│   │   │   ├── treatment.service.ts
+│   │   │   ├── payment.service.ts
+│   │   │   ├── document.service.ts
+│   │   │   └── notification.service.ts (for toasts/alerts)
+│   │   ├── interceptors/
+│   │   │   ├── auth.interceptor.ts (adds JWT token to headers)
+│   │   │   ├── error.interceptor.ts (handles errors globally)
+│   │   │   └── loader.interceptor.ts (shows/hides loading spinner)
+│   │   ├── guards/
+│   │   │   ├── auth.guard.ts (prevents access to pages without login)
+│   │   │   └── role.guard.ts (prevents access based on user role)
+│   │   ├── models/
+│   │   │   ├── user.model.ts
+│   │   │   ├── claim.model.ts
+│   │   │   ├── policy.model.ts
+│   │   │   ├── hospital.model.ts
+│   │   │   ├── doctor.model.ts
+│   │   │   ├── treatment.model.ts
+│   │   │   ├── payment.model.ts
+│   │   │   ├── document.model.ts
+│   │   │   └── common.model.ts (ApiResponse, ErrorResponse)
+│   │   └── constants/
+│   │       ├── api-endpoints.ts
+│   │       ├── app-config.ts
+│   │       └── messages.ts
+│   ├── shared/
+│   │   ├── components/
+│   │   │   ├── navbar/
+│   │   │   ├── sidebar/
+│   │   │   ├── footer/
+│   │   │   ├── loading-spinner/
+│   │   │   ├── modal-dialog/
+│   │   │   ├── alert-message/
+│   │   │   ├── confirmation-dialog/
+│   │   │   └── pagination/
+│   │   ├── pipes/
+│   │   │   ├── safe.pipe.ts (for sanitizing HTML content)
+│   │   │   ├── date-format.pipe.ts
+│   │   │   ├── currency.pipe.ts
+│   │   │   └── status.pipe.ts (format status displays)
+│   │   ├── directives/
+│   │   │   ├── hasRole.directive.ts (show/hide element based on role)
+│   │   │   └── appHighlight.directive.ts (highlight important rows)
+│   │   └── shared.module.ts
+│   ├── features/
+│   │   ├── auth/
+│   │   │   ├── login/
+│   │   │   │   ├── login.component.ts
+│   │   │   │   ├── login.component.html
+│   │   │   │   └── login.component.css
+│   │   │   ├── logout/
+│   │   │   └── auth-routing.module.ts
+│   │   ├── policyholder/
+│   │   │   ├── dashboard/
+│   │   │   │   ├── dashboard.component.ts
+│   │   │   │   ├── dashboard.component.html
+│   │   │   │   └── dashboard.component.css
+│   │   │   ├── my-claims/
+│   │   │   │   ├── claims-list.component.ts
+│   │   │   │   ├── claims-list.component.html
+│   │   │   │   ├── claims-list.component.css
+│   │   │   │   ├── claim-detail.component.ts
+│   │   │   │   ├── claim-detail.component.html
+│   │   │   │   └── claim-detail.component.css
+│   │   │   ├── create-claim/
+│   │   │   │   ├── create-claim.component.ts
+│   │   │   │   ├── create-claim.component.html
+│   │   │   │   └── create-claim.component.css
+│   │   │   ├── my-profile/
+│   │   │   │   ├── profile.component.ts
+│   │   │   │   ├── profile.component.html
+│   │   │   │   └── profile.component.css
+│   │   │   ├── document-upload/
+│   │   │   │   ├── upload.component.ts
+│   │   │   │   ├── upload.component.html
+│   │   │   │   └── upload.component.css
+│   │   │   └── policyholder-routing.module.ts
+│   │   ├── approver/
+│   │   │   ├── dashboard/
+│   │   │   │   ├── dashboard.component.ts
+│   │   │   │   ├── dashboard.component.html
+│   │   │   │   └── dashboard.component.css
+│   │   │   ├── claims-queue/
+│   │   │   │   ├── queue.component.ts
+│   │   │   │   ├── queue.component.html
+│   │   │   │   ├── queue.component.css
+│   │   │   │   ├── review-claim.component.ts
+│   │   │   │   ├── review-claim.component.html
+│   │   │   │   └── review-claim.component.css
+│   │   │   ├── statistics/
+│   │   │   │   ├── stats.component.ts (show claims approved/rejected counts)
+│   │   │   │   ├── stats.component.html
+│   │   │   │   └── stats.component.css
+│   │   │   └── approver-routing.module.ts
+│   │   ├── admin/
+│   │   │   ├── dashboard/
+│   │   │   │   ├── dashboard.component.ts
+│   │   │   │   ├── dashboard.component.html
+│   │   │   │   └── dashboard.component.css
+│   │   │   ├── user-management/
+│   │   │   │   ├── user-list.component.ts
+│   │   │   │   ├── user-list.component.html
+│   │   │   │   ├── user-list.component.css
+│   │   │   │   ├── user-form.component.ts
+│   │   │   │   ├── user-form.component.html
+│   │   │   │   └── user-form.component.css
+│   │   │   ├── policy-management/
+│   │   │   │   ├── policy-list.component.ts
+│   │   │   │   ├── policy-list.component.html
+│   │   │   │   ├── policy-list.component.css
+│   │   │   │   ├── policy-form.component.ts
+│   │   │   │   ├── policy-form.component.html
+│   │   │   │   └── policy-form.component.css
+│   │   │   ├── hospital-management/
+│   │   │   │   ├── hospital-list.component.ts
+│   │   │   │   ├── hospital-list.component.html
+│   │   │   │   ├── hospital-list.component.css
+│   │   │   │   ├── hospital-form.component.ts
+│   │   │   │   ├── hospital-form.component.html
+│   │   │   │   └── hospital-form.component.css
+│   │   │   ├── doctor-management/
+│   │   │   │   ├── doctor-list.component.ts
+│   │   │   │   ├── doctor-list.component.html
+│   │   │   │   ├── doctor-list.component.css
+│   │   │   │   ├── doctor-form.component.ts
+│   │   │   │   ├── doctor-form.component.html
+│   │   │   │   └── doctor-form.component.css
+│   │   │   ├── reports/
+│   │   │   │   ├── system-report.component.ts (overall statistics)
+│   │   │   │   ├── system-report.component.html
+│   │   │   │   └── system-report.component.css
+│   │   │   └── admin-routing.module.ts
+│   │   └── not-found/
+│   │       ├── not-found.component.ts
+│   │       ├── not-found.component.html
+│   │       └── not-found.component.css
+│   ├── app-routing.module.ts (main routing with lazy loading)
+│   ├── app.component.ts
+│   ├── app.component.html
+│   ├── app.component.css
+│   └── app.module.ts
+├── assets/
+│   ├── images/
+│   ├── icons/
+│   ├── documents/ (for sample files)
+│   └── styles/
+│       ├── global.css
+│       ├── variables.css
+│       └── responsive.css
+├── environments/
+│   ├── environment.ts
+│   └── environment.prod.ts
+├── index.html
+├── main.ts
+└── styles.css
+
+KEY MODULES TO INSTALL:
+npm install @angular/common@latest @angular/forms @angular/router
+npm install bootstrap ngx-bootstrap
+npm install rxjs
+npm install ngx-spinner (for loading spinner)
+npm install ngx-toastr (for notifications)
+npm install jwt-decode (for JWT decoding on frontend)
+npm install date-fns (for date utilities)
+npm install chartjs ng2-charts (for statistics/reports)
+npm install primeng (optional, alternative UI library)
+
+AUTHENTICATION FLOW:
+1. User opens /login page
+2. Enter username and password
+3. Click Login button
+4. AuthService calls POST /api/users/login
+5. Backend returns JWT token and user details (including role)
+6. AuthService stores token in localStorage and user in memory/state
+7. AuthInterceptor attaches token to all subsequent HTTP requests
+8. Router redirects user to dashboard based on role (ADMIN, APPROVER, POLICYHOLDER)
+9. Route Guards verify token validity and user role before allowing access
+10. On logout, token is cleared and user is redirected to login
+
+ROLE-BASED ROUTING:
+- /login (public)
+- /policyholder/* (protected, POLICYHOLDER role only)
+  - /dashboard
+  - /claims
+  - /claims/:id (view claim detail)
+  - /create-claim
+  - /upload-documents/:claimId
+  - /profile
+- /approver/* (protected, APPROVER role only)
+  - /dashboard
+  - /claims-queue (list all assigned claims)
+  - /claims/:id (review and approve/reject)
+  - /statistics
+- /admin/* (protected, ADMIN role only)
+  - /dashboard
+  - /users (CRUD operations)
+  - /users/add
+  - /users/:id/edit
+  - /policies (CRUD operations)
+  - /policies/add
+  - /policies/:id/edit
+  - /hospitals (CRUD operations)
+  - /hospitals/add
+  - /hospitals/:id/edit
+  - /doctors (CRUD operations)
+  - /doctors/add
+  - /doctors/:id/edit
+  - /reports
+- /404 (not found)
+- /** (redirect to /404)
+
+COMPONENT SPECIFICATIONS:
+
+1. LOGIN COMPONENT:
+   - Form with username and password fields
+   - Login button
+   - Remember me checkbox (optional)
+   - Error message display
+   - Loading state during login
+   - Redirect to dashboard on successful login
+   - Support for keyboard Enter key to submit
+
+2. POLICYHOLDER DASHBOARD:
+   - Welcome greeting with user name
+   - Quick stats: Total Claims, Pending Claims, Approved Claims, Rejected Claims
+   - Recent claims list (last 5)
+   - Card showing policy details
+   - Create New Claim button
+   - View My Profile button
+   - Quick links to important actions
+
+3. POLICYHOLDER CLAIMS LIST:
+   - Table with columns: Claim Number, Date, Amount, Status, Action
+   - Status color coding (Pending=Yellow, Approved=Green, Rejected=Red)
+   - Sorting by date, amount, or status
+   - Pagination (10 per page)
+   - Search/filter by claim number or date range
+   - View button to show claim detail
+   - Documents button to view attached documents
+
+4. CREATE CLAIM COMPONENT:
+   - Form fields: Treatment ID, Claim Amount, Policy ID
+   - Select treatment from dropdown (fetched from backend)
+   - Select policy from dropdown
+   - Enter claim amount
+   - Submit button
+   - Success message on submit
+   - Error handling for form validation
+
+5. CLAIM DETAIL COMPONENT:
+   - Display full claim information
+   - Show treatment details
+   - Show attached documents with download links
+   - Show approval comments (if approved/rejected)
+   - Show payment details (if approved)
+   - Back button to claims list
+
+6. DOCUMENT UPLOAD COMPONENT:
+   - Drag-and-drop zone for file upload
+   - File type restrictions (PDF, JPG, PNG, DOC)
+   - File size limit (5 MB per file)
+   - Multiple file upload
+   - Progress bar during upload
+   - List of uploaded documents with delete option
+   - Submit button
+
+7. APPROVER CLAIMS QUEUE:
+   - Table with columns: Claim Number, Policyholder Name, Amount, Date, Status, Action
+   - Filter by status: All, Pending, Approved, Rejected
+   - Sort by date or amount
+   - Pagination
+   - Search by claim number or policyholder name
+   - Review button to open claim review page
+
+8. REVIEW CLAIM COMPONENT:
+   - Display claim details (readonly)
+   - Display treatment details (readonly)
+   - Display attached documents (readonly)
+   - Display policyholder details (readonly)
+   - Approval section:
+     - Radio buttons: Approve, Reject
+     - Approved Amount field (if approval selected)
+     - Rejection Reason textarea (if rejection selected)
+     - Comments textarea
+   - Save button
+   - Cancel button
+   - Success/error messages
+
+9. APPROVER STATISTICS:
+   - Total claims reviewed (chart)
+   - Claims approved vs rejected (pie chart)
+   - Average claim amount (statistic)
+   - Claims pending review (count)
+   - Monthly trend (line chart)
+
+10. ADMIN USER MANAGEMENT:
+    - Table with columns: User ID, Username, Full Name, Email, Role, Status, Actions
+    - Create New User button (opens form in modal or new page)
+    - Edit button (opens user form for editing)
+    - Delete button (with confirmation dialog)
+    - Status toggle (Active/Inactive)
+    - Search by username or email
+    - Filter by role (Admin, Approver, Policyholder)
+    - Sort by any column
+
+11. USER FORM COMPONENT:
+    - Fields: Full Name, Email, Username, Phone, DOB, Address, Account Number, IFSC Code, Bank Name
+    - Role dropdown: Admin, Approver, Policyholder
+    - Status dropdown: Active, Inactive
+    - Password field (for new users, required; for editing, optional)
+    - Submit and Cancel buttons
+    - Form validation
+    - Success message on submit
+
+12. ADMIN POLICY MANAGEMENT:
+    - Similar structure to user management
+    - Fields: Policy Number, Policy Name, Type, Coverage Amount, Premium, Benefits, Status
+    - Start Date and End Date pickers
+    - Create, Edit, Delete operations
+
+13. ADMIN HOSPITAL MANAGEMENT:
+    - Similar structure
+    - Fields: Hospital Name, Type, Address, Phone Number
+    - Create, Edit, Delete operations
+
+14. ADMIN DOCTOR MANAGEMENT:
+    - Similar structure
+    - Fields: Doctor Name, Specialization, Qualification, Experience, Associated Hospital
+    - Hospital dropdown
+    - Create, Edit, Delete operations
+
+15. ADMIN SYSTEM REPORT:
+    - Overall statistics dashboard
+    - Total users by role (pie chart)
+    - Total claims by status (bar chart)
+    - Total policies (count)
+    - Total hospitals (count)
+    - Monthly revenue/premium (line chart)
+    - Export report to PDF or Excel
+
+SHARED COMPONENTS:
+- Navbar: Display user name, role, logout button, breadcrumb navigation
+- Sidebar: Navigation menu based on user role (collapsible)
+- Footer: Company info, year, copyright
+- Loading Spinner: Full-page or component-level loader
+- Alert Message: Success, Error, Warning, Info messages (toast notifications)
+- Confirmation Dialog: Yes/No confirmation for delete operations
+- Modal Dialog: Generic modal for forms and details
+- Pagination: Reusable pagination controls
+
+INTERCEPTORS:
+1. AuthInterceptor:
+   - Check if request URL is API call
+   - Retrieve JWT token from localStorage
+   - Add 'Authorization: Bearer <token>' header if token exists
+   - Pass request to next handler
+
+2. ErrorInterceptor:
+   - Catch HTTP errors
+   - Handle 401 (Unauthorized) - redirect to login
+   - Handle 403 (Forbidden) - show access denied message
+   - Handle 404 (Not Found) - show not found message
+   - Handle 500 (Server Error) - show error notification
+   - Display generic error messages
+
+3. LoaderInterceptor:
+   - Show loading spinner on request
+   - Hide loading spinner on response/error
+
+GUARDS:
+1. AuthGuard:
+   - Check if user is logged in (token exists)
+   - If not, redirect to /login
+   - If yes, allow access
+
+2. RoleGuard:
+   - Check if user's role matches required role(s) for route
+   - If not, redirect to /403 or dashboard
+   - If yes, allow access
+
+SERVICES:
+
+1. AuthService:
+   - login(username, password): Observable<LoginResponse>
+   - logout(): void
+   - getCurrentUser(): User
+   - getToke(): string
+   - isLoggedIn(): boolean
+   - hasRole(role: string): boolean
+   - refreshToken(): Observable<LoginResponse>
+
+2. UserService:
+   - getUsers(page, size): Observable<User[]>
+   - getUserById(id): Observable<User>
+   - createUser(user): Observable<User>
+   - updateUser(id, user): Observable<User>
+   - deleteUser(id): Observable<void>
+   - updateProfile(user): Observable<User>
+
+3. ClaimService:
+   - getClaims(page, size, status): Observable<Claim[]>
+   - getClaimById(id): Observable<Claim>
+   - createClaim(claim): Observable<Claim>
+   - updateClaim(id, claim): Observable<Claim>
+   - approveClaim(id, approvalData): Observable<Claim>
+   - rejectClaim(id, rejectionData): Observable<Claim>
+
+4. DocumentService:
+   - uploadDocument(claimId, file): Observable<Document>
+   - getDocuments(claimId): Observable<Document[]>
+   - deleteDocument(documentId): Observable<void>
+   - downloadDocument(documentId): void
+
+5. PolicyService:
+   - getPolicies(page, size): Observable<Policy[]>
+   - getPolicyById(id): Observable<Policy>
+   - createPolicy(policy): Observable<Policy>
+   - updatePolicy(id, policy): Observable<Policy>
+   - deletePolicy(id): Observable<void>
+
+6. Similar services for Hospital, Doctor, Treatment, Payment
+
+STYLING AND UI:
+- Use Bootstrap 5 for responsive grid and components
+- Custom CSS variables for theme colors
+- Dark and Light theme support (optional)
+- Mobile-responsive design (Bootstrap breakpoints)
+- Consistent button styles and colors
+- Color coding for status: Green (Success/Approved), Red (Error/Rejected), Yellow (Pending/Warning), Blue (Info)
+- Font: Roboto or system fonts
+- Icons: FontAwesome or Material Icons
+
+FORM VALIDATION:
+- Required field validation
+- Email format validation
+- Phone number format validation
+- Password strength validation (min 8 chars, uppercase, lowercase, numbers, special chars)
+- Date range validation (start date < end date)
+- Numeric field validation
+- Show error messages below fields
+- Disable submit button if form is invalid
+
+STATE MANAGEMENT (RxJS):
+- Create BehaviorSubjects for shared data:
+  - currentUser$ (Observable<User>)
+  - isLoading$ (Observable<boolean>)
+  - notification$ (Observable<Notification>)
+  - selectedClaim$ (Observable<Claim>)
+
+ENVIRONMENT CONFIGURATION:
+environment.ts:
+{
+  production: false,
+  apiUrl: 'http://localhost:8080',
+  apiVersion: 'v1',
+  tokenKey: 'auth_token',
+  userKey: 'current_user'
+}
+
+environment.prod.ts:
+{
+  production: true,
+  apiUrl: 'https://api.insurance-claims.com',
+  apiVersion: 'v1',
+  tokenKey: 'auth_token',
+  userKey: 'current_user'
+}
+
+BUILD AND DEPLOYMENT:
+- Development: ng serve (runs on http://localhost:4200)
+- Production Build: ng build --configuration production
+- Build output directory: dist/
+- Deploy dist/ to web server (Apache, Nginx, etc.)
+- Configure server to route all requests to index.html (SPA requirement)
+- Enable CORS on backend for frontend domain
+
+ADDITIONAL FEATURES (OPTIONAL):
+- Dark/Light theme toggle
+- Internationalization (i18n) for multiple languages
+- Export to PDF/Excel functionality for reports
+- Real-time notifications using WebSockets
+- Email notifications on claim status change
+- Two-factor authentication (2FA)
+- User profile picture upload
+- Activity log/audit trail
+- Claim history timeline view
+- Chatbot for common FAQs
+
+TESTING:
+- Unit tests: Jasmine + Karma
+- Integration tests: Karma
+- E2E tests: Protractor or Cypress
+- Test coverage: Aim for 80%+ coverage
+
+PERFORMANCE OPTIMIZATION:
+- Lazy loading for feature modules
+- Implement virtual scrolling for large tables
+- Use trackBy function in *ngFor
+- Unsubscribe from observables to prevent memory leaks
+- Lazy load images
+- Code splitting
+- OnPush change detection strategy where possible
+
+SECURITY CONSIDERATIONS:
+- Store JWT token in localStorage (secure alternatives: httpOnly cookies)
+- Validate all user inputs
+- Sanitize HTML content using Angular's DomSanitizer
+- Protect API endpoints with CORS
+- Implement rate limiting on frontend
+- Use HTTPS in production
+- Implement Content Security Policy (CSP)
+- Prevent CSRF attacks
+- Validate JWT token expiry
+
+This comprehensive frontend architecture ensures a scalable, maintainable, and user-friendly application for the insurance claim management system with Angular.

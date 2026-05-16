@@ -1,0 +1,74 @@
+Health Insurance Claim Management System - Example Flow
+
+## Main Motive
+The main motive of this project is to automate health insurance reimbursement claim processing. Policyholders can submit claims after treatment, approvers can validate and approve/reject claims, and administrators manage policies, hospitals, doctors, and users.
+
+## How the Project Works
+1. A user logs in using `POST /api/users/login`.
+2. If login is successful, the system returns a success message, the user role, and user details.
+3. The policyholder may view available insurance policies via `/api/policies`.
+4. The user adds treatment details after hospital treatment with `/api/treatments`.
+5. The policyholder submits a claim using `/api/claims`, linking the treatment, user, and policy.
+6. The policyholder uploads supporting documents as metadata using `/api/documents`.
+7. An approver reviews the claim and updates the claim status to `APPROVED` or `REJECTED`.
+8. If approved, payment is processed through `/api/payments`.
+9. The policyholder can view the final claim status, approved amount, approver comments, rejection reason, payment status, and payment details.
+
+## Who Uses the System
+- `POLICYHOLDER`: submits claims, uploads documents, and tracks claim progress.
+- `APPROVER`: reviews claims, approves/rejects them, and adds comments.
+- `ADMIN`: manages policies, hospitals, doctors, and user account status. Admin does not approve claims.
+
+## Main Project Flow
+- `User` → logs in
+- `Policyholder` → views policies and submits claims
+- `Claim` → stores claim status, approval remarks, and rejection reasons
+- `Document` → stores supporting document metadata for claims
+- `Payment` → stores settlement details after approval
+
+## Entity Relationships
+- `User` has many `Claim`
+- `User` has many `Treatment`
+- `Hospital` has many `Doctor`
+- `Hospital` has many `Treatment`
+- `Doctor` has many `Treatment`
+- `InsurancePolicy` has many `Claim`
+- `Treatment` has one `Claim`
+- `Claim` has many `Document`
+- `Claim` has one `Payment`
+- `User` (as approver) has many approved `Claim`
+
+## Main Annotations Used
+- `@Entity` - marks a class as a JPA entity
+- `@Table` - maps the entity to a database table
+- `@Id` - marks the primary key field
+- `@GeneratedValue` - configures auto-generation of the primary key
+- `@OneToMany` - defines one-to-many relationships
+- `@ManyToOne` - defines many-to-one relationships
+- `@OneToOne` - defines one-to-one relationships
+- `@JoinColumn` - specifies the foreign key column
+- `@JsonManagedReference` / `@JsonBackReference` - avoids circular JSON serialization
+- `@RestController` - marks a class as a REST controller
+- `@RequestMapping` - defines a base API path
+- `@GetMapping`, `@PostMapping`, `@PutMapping`, `@PatchMapping`, `@DeleteMapping` - define REST API endpoints
+- `ResponseEntity` - returns HTTP responses with status codes
+- `@RequestBody` - binds request JSON to a Java object
+- `@PathVariable` - binds route parameters to method arguments
+
+## Why This Flow is Useful
+- It separates the roles and responsibilities clearly.
+- It captures the entire claim lifecycle from submission to payment.
+- It stores approval comments and rejection reasons for transparency.
+- It supports basic data management for policies, hospitals, doctors, and users.
+
+## Running the Project
+1. Configure `src/main/resources/application.properties` with your MySQL settings.
+2. Run `./mvnw spring-boot:run`.
+3. Use Postman to call APIs listed in `post.ms`.
+4. Load sample data with `insert.sql` if needed.
+
+## Important Notes
+- No self-registration endpoint is provided.
+- All users must exist in the database before login.
+- Admin manages metadata; approvers handle claim decisions.
+- The backend is structured for beginner-friendly learning.

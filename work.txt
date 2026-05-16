@@ -1,0 +1,33 @@
+Health Insurance Claim Management System
+
+Project Overview:
+- Spring Boot 4 backend using Java 17 and MySQL.
+- Designed as a reimbursement claim management system.
+- Three roles: POLICYHOLDER, APPROVER, ADMIN.
+- No self-registration from the API; login only for existing database users.
+
+Role Responsibilities:
+- POLICYHOLDER: Create claims, upload documents, view claim status, view payment details.
+- APPROVER: Review claim details, approve or reject claims, add comments, adjust approved amounts, enter rejection reasons.
+- ADMIN: Manage policies, hospitals, doctors, and users. Admin cannot approve claims.
+
+Key Entities:
+- User: Stores login details, bank account details, role, account status, and audit data.
+- InsurancePolicy: Stores policy details, coverage, premium, benefits, and validity.
+- Hospital: Stores hospital details and hospital association.
+- Doctor: Stores doctor details and hospital association.
+- Treatment: Stores treatment records linked to policyholder, doctor, and hospital.
+- Claim: Stores claim request details, approval status, assigned approver, and related treatment.
+- Document: Stores supporting document metadata linked to a claim.
+- Payment: Stores payment settlement details for approved claims.
+
+Testing and Postman Notes:
+- Use POST /api/users/login for all roles.
+- Login supports `application/x-www-form-urlencoded` or JSON body.
+- The username and password must not be sent in the URL path.
+- Passwords are stored encrypted in the database using BCrypt.
+- Use the provided users in insert.sql for ADMIN, APPROVER, and POLICYHOLDER tests.
+- After successful login, the response includes role and user details.
+- Use GET endpoints to verify saved data for policies, hospitals, doctors, treatments, claims, documents, and payments.
+- Use PUT or PATCH endpoints to update records and test approval flow.
+- Insert sample data first using insert.sql, then call POST endpoints for claims and payments.
